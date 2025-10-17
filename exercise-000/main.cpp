@@ -4,6 +4,22 @@
 
 #include "config.h"
 
+/// Teil 3: Funktionen mit Zeigern 
+
+void changeValueByParameter(int value)
+{    
+    value = 42;
+    fmt::print("value: {}\n", value);
+}
+
+
+
+void changeValueByPointer(int* ptr)
+{    
+    *ptr = 99;
+    fmt::print("value: {}\n", *ptr);
+}
+
 int main(int argc, char **argv) {
 
     /**
@@ -65,18 +81,4 @@ int main(int argc, char **argv) {
     return 0; /* exit gracefully*/
 }
 
-/// Teil 3: Funktionen mit Zeigern 
 
-void changeValueByParameter(int value)
-{    
-    value = 42;
-    fmt::print("value: {}\n", value);
-}
-
-
-
-void changeValueByPointer(int* ptr)
-{    
-    *ptr = 99;
-    fmt::print("value: {}\n", *ptr);
-}
