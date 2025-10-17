@@ -4,7 +4,6 @@ Begleitprojekt für Mikrocomputertechnik 3 im Kurs tea23 an der DHBW Ravensburg 
 
 **WICHTIG** Bitte verwenden sie zur Entwicklung die vorgefertigten Umgebungen.
 
-
 ## Synchronisation des eignen Forks
 
 Es wird davon ausgegangen, dass Sie einen Fork angelegt haben und von diesen geklont haben. Damit entspricht Ihr Fork der Bezeichnung ``origin``. Siehe hierzu auch die [Hinweise in der ersten Übungsaufgabe](exercise-001#upstream-hinzuf%C3%BCgen).

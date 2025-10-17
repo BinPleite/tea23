@@ -109,13 +109,25 @@
     "cSpell.words": [
         "codespace",
         "Codespaces",
+        "cout",
+        "cstdlib",
         "DHBW",
         "googletest",
         "graugans",
         "gtest",
+        "intuitivere",
+        "malloc",
         "mathjax",
+        "myclass",
+        "nullptr",
+        "Originalvariable",
+        "println",
+        "stdlib",
         "Strava",
         "Struct",
-        "Wilking"
+        "Wilking",
+        "zeiger",
+        "Zeilenendezeichen"
     ],
+    "C_Cpp.errorSquiggles": "disabled",
 }
