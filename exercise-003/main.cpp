@@ -41,29 +41,37 @@ const char* eventToString(GateEvent e) {
 GateState fsm(GateState current, GateEvent event) {
     switch (current) {
         case STATE_UP:
-            if (event == EVENT_TASTE) return STATE_STOP_UP;
-            if (event == EVENT_ENDSCHALTER_OBEN) return STATE_OPEN;
+            if (event == EVENT_TASTE) 
+                return STATE_STOP_UP;
+            if (event == EVENT_ENDSCHALTER_OBEN) 
+                return STATE_OPEN;
             break;
 
         case STATE_STOP_UP:
-            if (event == EVENT_TASTE) return STATE_DOWN;
+            if (event == EVENT_TASTE) 
+                return STATE_DOWN;
             break;
 
         case STATE_DOWN:
-            if (event == EVENT_TASTE) return STATE_STOP_DOWN;
-            if (event == EVENT_ENDSCHALTER_UNTEN) return STATE_CLOSED;
+            if (event == EVENT_TASTE) 
+                return STATE_STOP_DOWN;
+            if (event == EVENT_ENDSCHALTER_UNTEN) 
+                return STATE_CLOSED;
             break;
 
         case STATE_STOP_DOWN:
-            if (event == EVENT_TASTE) return STATE_UP;
+            if (event == EVENT_TASTE) 
+                return STATE_UP;
             break;
 
         case STATE_CLOSED:
-            if (event == EVENT_TASTE) return STATE_UP;
+            if (event == EVENT_TASTE) 
+                return STATE_UP;
             break;
 
         case STATE_OPEN:
-            if (event == EVENT_TASTE) return STATE_DOWN;
+            if (event == EVENT_TASTE) 
+                return STATE_DOWN;
             break;
     }
     return current;
