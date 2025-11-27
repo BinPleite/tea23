@@ -118,4 +118,5 @@
         "Struct",
         "Wilking"
     ],
+    "C_Cpp.errorSquiggles": "enabled",
 }
