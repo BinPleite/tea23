@@ -1,176 +1,246 @@
-#include "list.hpp"
-#include <stdlib.h>   /* Achte auf < vorne und > hinten */
-#include <stdio.h>    /* Hilft manchmal bei NULL Definitionen */
+/**
+ * list.cpp
+ * 
+ * Implementierung der einfach verketteten Liste.
+ * Hier befindet sich die Programlogik (das "Wie"), passend zum Header (das "Was").
+ */
 
-/* Falls NULL immer noch nicht erkannt wird, definieren wir es zur Sicherheit selbst: */
+#include "list.hpp"   // Wir binden unsere eigene Header-Datei ein, um List_t und ListNode_t zu kennen.
+#include <stdlib.h>   // Wird benötigt für malloc (Speicher reservieren) und free (Speicher freigeben).
+#include <stdio.h>    // (Optional) Hilft manchmal, falls NULL nicht definiert ist.
+
+// Sicherheitsnetz: Falls der Compiler NULL nicht kennt, definieren wir es als 0.
 #ifndef NULL
 #define NULL 0
 #endif
 
-// ---------------------------------------------------------
-// 2.1 Knotenverwaltung
-// ---------------------------------------------------------
+// =========================================================
+// 2.1 KNOTENVERWALTUNG
+// =========================================================
 
+/**
+ * Erstellt einen neuen, leeren Knoten auf dem "Heap" (dynamischer Speicher).
+ * Rückgabe: Zeiger auf den neuen Knoten oder NULL, wenn der Speicher voll ist.
+ */
 ListNode_t* NewListNode(void) {
-    // Speicher reservieren
+    // 1. Wir bitten das Betriebssystem um Speicherplatz für genau EINEN Knoten.
+    // sizeof(ListNode_t) berechnet automatisch die benötigte Byte-Größe.
+    // (ListNode_t*) castet den allgemeinen Zeiger (void*) in unseren spezifischen Typ.
     ListNode_t* newNode = (ListNode_t*)malloc(sizeof(ListNode_t));
 
-    // Wenn Speicher erfolgreich reserviert wurde
+    // 2. Wir prüfen, ob wir den Speicher wirklich bekommen haben.
     if (newNode != NULL) {
-        newNode->data = 0;      // Standardwert 0
-        newNode->pNext = NULL;  // Kein Nachfolger
+        newNode->data = 0;      // Wir initialisieren den Wert sicherheitshalber mit 0.
+        newNode->pNext = NULL;  // WICHTIG: Der Zeiger muss auf NULL gesetzt werden, 
+                                // sonst zeigt er irgendwohin (Zufallswert) -> Absturzgefahr!
     }
 
-    return newNode;
+    return newNode; // Wir geben die Adresse des neuen Knotens an den Aufrufer zurück.
 }
 
+/**
+ * Gibt den Speicher eines einzelnen Knotens wieder frei.
+ * Wichtig: Kümmert sich NICHT um die Liste, sondern löscht nur dieses eine Element.
+ */
 void FreeListNode(ListNode_t* elem) {
-    // Nur freigeben, wenn der Zeiger gültig ist
+    // Nur freigeben, wenn der Zeiger auch wirklich auf etwas zeigt.
     if (elem != NULL) {
-        free(elem);
+        free(elem); // Sag dem Betriebssystem: "Diesen Speicher brauche ich nicht mehr."
     }
 }
 
-// ---------------------------------------------------------
-// 2.2 Listenverwaltung
-// ---------------------------------------------------------
 
+// =========================================================
+// 2.2 LISTENVERWALTUNG
+// =========================================================
+
+/**
+ * Erstellt eine neue Listen-Verwaltungsstruktur.
+ * Das ist quasi der "Kopf", der weiß, wo die Liste anfängt und aufhört.
+ */
 List_t* NewList(void) {
-    // Speicher für die Listen-Struktur reservieren
+    // Speicher für die Verwaltungsstruktur (List_t) holen.
     List_t* newList = (List_t*)malloc(sizeof(List_t));
 
     if (newList != NULL) {
-        newList->pHead = NULL;
-        newList->pTail = NULL;
-        newList->size = 0;
+        newList->pHead = NULL; // Am Anfang zeigt Head auf nichts (Liste leer).
+        newList->pTail = NULL; // Tail zeigt auch auf nichts.
+        newList->size = 0;     // Größe ist 0.
     }
 
     return newList;
 }
 
+/**
+ * Löscht die gesamte Liste und alle darin enthaltenen Knoten.
+ * Das ist wichtig, um "Memory Leaks" (Speicherlecks) zu verhindern.
+ */
 void FreeList(List_t* list) {
+    // Wenn die Liste gar nicht existiert, brechen wir ab.
     if (list == NULL) return;
 
-    // Alle Knoten durchgehen und löschen
+    // Wir starten ganz vorne beim Head.
     ListNode_t* current = list->pHead;
     ListNode_t* nextNode = NULL;
 
+    // Schleife: Solange wir noch Knoten haben...
     while (current != NULL) {
-        nextNode = current->pNext; // Nächsten merken
-        FreeListNode(current);     // Aktuellen löschen
-        current = nextNode;        // Weiterspringen
+        // TRICK: Wir müssen uns den Nächsten merken, BEVOR wir den aktuellen löschen.
+        nextNode = current->pNext; 
+        
+        // Jetzt können wir den aktuellen Knoten gefahrlos löschen.
+        FreeListNode(current);     
+        
+        // Wir springen zum gemerkten Nächsten.
+        current = nextNode;        
     }
 
-    // Die Liste selbst löschen
+    // Ganz am Ende löschen wir noch die Verwaltungsstruktur (den "Kopf") selbst.
     free(list);
 }
 
-// ---------------------------------------------------------
-// 2.3 Einfügen
-// ---------------------------------------------------------
 
+// =========================================================
+// 2.3 EINFÜGEN
+// =========================================================
+
+/**
+ * Fügt ein neues Element am ENDE der Liste ein.
+ * Rückgabe: 0 bei Erfolg, -1 bei Fehler.
+ */
 int InsertIntoLinkedList(List_t* list, ListNode_t* elem) {
-    // Sicherheitscheck
+    // Sicherheitscheck: Sind Liste und Element gültig?
     if (list == NULL || elem == NULL) {
-        return -1; // Fehlercode
+        return -1; // Fehlercode zurückgeben
     }
 
-    // Fall 1: Liste ist noch leer
+    // Fall 1: Die Liste ist noch komplett leer.
     if (list->pHead == NULL) {
-        list->pHead = elem;
-        list->pTail = elem;
+        list->pHead = elem; // Der neue Knoten ist jetzt der Anfang...
+        list->pTail = elem; // ...und gleichzeitig das Ende.
     } 
-    // Fall 2: Liste hat schon Elemente
+    // Fall 2: Es sind schon Elemente da.
     else {
-        list->pTail->pNext = elem; // Alten Tail auf neuen Knoten zeigen lassen
-        list->pTail = elem;        // Neuer Knoten ist jetzt Tail
+        // Der bisherige letzte Knoten (Tail) soll auf den Neuen zeigen.
+        list->pTail->pNext = elem;
+        
+        // Der Zeiger für das Ende (Tail) wird auf den neuen Knoten aktualisiert.
+        list->pTail = elem;
     }
 
-    elem->pNext = NULL; // Das Ende zeigt immer auf NULL
+    // Der neue letzte Knoten zeigt immer auf NULL (Ende der Fahnenstange).
+    elem->pNext = NULL;
+    
+    // Wir erhöhen den Zähler für die Anzahl der Elemente.
     list->size++;
     
     return 0; // Erfolg
 }
 
+/**
+ * Fügt ein Element GENAU NACH einem bestimmten anderen Knoten ein.
+ * Nützlich, um mitten in die Liste zu schreiben.
+ */
 int InsertIntoLinkedListAfterNode(List_t* list, ListNode_t* node, ListNode_t* elem) {
-    // Sicherheitscheck
+    // Sicherheitscheck: Wir brauchen Liste, Vorgänger-Knoten (node) und neuen Knoten (elem).
     if (list == NULL || node == NULL || elem == NULL) {
         return -1;
     }
 
-    // Einfügen zwischen 'node' und 'node->pNext'
+    // 1. Der neue Knoten übernimmt den Nachfolger vom alten Knoten.
+    // (Er "greift" sich die Hand des Nächsten).
     elem->pNext = node->pNext;
+    
+    // 2. Der alte Knoten zeigt jetzt auf den Neuen.
+    // (Er lässt den Alten los und "greift" sich den Neuen).
     node->pNext = elem;
 
-    // Wenn wir nach dem Tail eingefügt haben, müssen wir den Tail aktualisieren
+    // Sonderfall: Wenn wir ganz am Ende eingefügt haben (hinter dem bisherigen Tail)...
     if (node == list->pTail) {
-        list->pTail = elem;
+        list->pTail = elem; // ...dann ist der Neue jetzt der offizielle Tail.
     }
 
     list->size++;
     return 0;
 }
 
-// ---------------------------------------------------------
-// 2.4 Entfernen
-// ---------------------------------------------------------
 
+// =========================================================
+// 2.4 ENTFERNEN
+// =========================================================
+
+/**
+ * Entfernt ein bestimmtes Element aus der Liste.
+ * Schwierigkeit: Wir brauchen den Vorgänger, um die Kette wieder zu schließen!
+ */
 int RemoveFromList(List_t* list, ListNode_t* elem) {
+    // Check ob Liste existiert, leer ist oder Element ungültig ist.
     if (list == NULL || list->pHead == NULL || elem == NULL) {
         return -1;
     }
 
-    ListNode_t* current = list->pHead;
-    ListNode_t* prev = NULL;
+    ListNode_t* current = list->pHead; // Startläufer
+    ListNode_t* prev = NULL;           // Merker für den Vorgänger
 
-    // Suchen des Elements und seines Vorgängers
+    // Wir laufen durch die Liste und suchen 'elem'.
+    // Gleichzeitig merken wir uns immer, wo wir gerade herkommen (prev).
     while (current != NULL && current != elem) {
-        prev = current;
-        current = current->pNext;
+        prev = current;           // Aktuellen als "Vorgänger" merken
+        current = current->pNext; // Einen Schritt weitergehen
     }
 
-    // Element nicht gefunden
+    // Wenn 'current' NULL ist, sind wir am Ende rausgefallen -> Element nicht gefunden.
     if (current == NULL) {
-        return -1;
+        return -1; 
     }
 
-    // Fall A: Wir löschen den Kopf (Head)
+    // Jetzt wird gelöscht (ausgekettet).
+    
+    // Fall A: Wir löschen das allererste Element (Head).
     if (current == list->pHead) {
-        list->pHead = current->pNext;
+        list->pHead = current->pNext; // Head rückt einfach eins weiter.
         
-        // Wenn die Liste jetzt leer ist, muss auch Tail NULL sein
+        // Wenn das das einzige Element war, ist die Liste jetzt leer.
+        // Dann muss auch Tail auf NULL gesetzt werden.
         if (list->pHead == NULL) {
             list->pTail = NULL;
         }
     } 
-    // Fall B: Wir löschen aus der Mitte oder am Ende
+    // Fall B: Wir löschen ein Element aus der Mitte oder vom Ende.
     else {
+        // Der Vorgänger überspringt den zu Löschenden und zeigt direkt auf den Nachfolger.
         prev->pNext = current->pNext;
         
-        // Wenn wir den Tail gelöscht haben, ist der Vorgänger der neue Tail
+        // Wenn wir zufällig das letzte Element (Tail) gelöscht haben...
         if (current == list->pTail) {
-            list->pTail = prev;
+            list->pTail = prev; // ...dann ist der Vorgänger jetzt das neue Ende.
         }
     }
 
+    // Speicher des gelöschten Knotens freigeben.
     FreeListNode(current);
-    list->size--;
+    list->size--; // Größe anpassen.
 
     return 0;
 }
 
-// ---------------------------------------------------------
-// 2.5 Traversieren
-// ---------------------------------------------------------
 
+// =========================================================
+// 2.5 TRAVERSIEREN (Hilfsfunktion)
+// =========================================================
+
+/**
+ * Gibt den nächsten Knoten zurück.
+ * Dient dazu, durch die Liste zu iterieren (For-Schleife).
+ */
 ListNode_t* GetNext(const List_t* list, ListNode_t* elem) {
     if (list == NULL) return NULL;
 
-    // Wenn elem NULL ist, gib den Start der Liste zurück
+    // Wenn 'elem' NULL ist, bedeutet das: "Gib mir den allerersten Knoten".
     if (elem == NULL) {
         return list->pHead;
     }
 
-    // Sonst den Nachfolger
+    // Ansonsten gib einfach den Nachfolger zurück.
     return elem->pNext;
 }
